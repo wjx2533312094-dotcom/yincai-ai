@@ -6,6 +6,7 @@
 - 正式域名：`https://yincai.click`
 - 工具页：`https://yincai.click/tool`
 - Vercel 项目：`yincai-ai`
+- GitHub 仓库：`https://github.com/wjx2533312094-dotcom/yincai-ai`
 - 数据库：Supabase Postgres
 
 ## 本地开发
