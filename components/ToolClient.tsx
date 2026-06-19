@@ -107,9 +107,15 @@ export function ToolClient() {
         throw new Error(data.error || "验证码发送失败。");
       }
 
-      setDevCode(data.devCode || "");
-      setCode(data.devCode || "");
-      setAuthMessage("验证码已生成，开发版已自动填入。");
+      if (data.devCode) {
+        setDevCode(data.devCode);
+        setCode(data.devCode);
+        setAuthMessage("验证码已生成，开发版已自动填入。");
+      } else {
+        setDevCode("");
+        setCode("");
+        setAuthMessage("验证码已发送，请查看手机短信。");
+      }
     } catch (err) {
       setAuthMessage(err instanceof Error ? err.message : "验证码发送失败。");
     } finally {
