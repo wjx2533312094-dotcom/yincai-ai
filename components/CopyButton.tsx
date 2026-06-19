@@ -21,7 +21,7 @@ export function CopyButton({ text, label = "复制" }: CopyButtonProps) {
     <button
       type="button"
       onClick={handleCopy}
-      className="inline-flex items-center gap-1.5 rounded-md border border-line bg-white px-3 py-1.5 text-sm font-medium text-ink hover:border-brand hover:text-brand"
+      className="inline-flex items-center gap-1.5 rounded-md border border-line bg-white px-3 py-1.5 text-sm font-medium text-ink transition hover:-translate-y-0.5 hover:border-brand hover:text-brand"
       title={label}
     >
       {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}

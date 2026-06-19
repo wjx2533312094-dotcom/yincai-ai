@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { CursorParticles } from "@/components/CursorParticles";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -17,6 +18,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="zh-CN">
       <body>
+        <CursorParticles />
         <header className="sticky top-0 z-30 border-b border-line bg-white/90 backdrop-blur">
           <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
             <Link href="/" className="flex items-center gap-2 text-lg font-semibold text-ink">
@@ -26,10 +28,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               影策 AI
             </Link>
             <nav className="flex items-center gap-2 text-sm text-muted">
-              <Link className="rounded-md px-3 py-2 hover:bg-slate-100 hover:text-ink" href="/">
+              <Link className="rounded-md px-3 py-2 transition hover:bg-slate-100 hover:text-ink" href="/">
                 首页
               </Link>
-              <Link className="rounded-md px-3 py-2 hover:bg-slate-100 hover:text-ink" href="/tool">
+              <Link className="rounded-md px-3 py-2 transition hover:bg-slate-100 hover:text-ink" href="/tool">
                 生成工具
               </Link>
             </nav>
@@ -41,7 +43,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <p>© {new Date().getFullYear()} 影策 AI. AI 辅助创作工具，生成内容请人工审核后使用。</p>
             <nav className="flex flex-wrap gap-3">
               {legalLinks.map((link) => (
-                <Link key={link.href} href={link.href} className="hover:text-brand">
+                <Link key={link.href} href={link.href} className="transition hover:text-brand">
                   {link.label}
                 </Link>
               ))}

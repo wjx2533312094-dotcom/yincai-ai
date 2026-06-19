@@ -13,7 +13,7 @@ export default function HomePage() {
     <main>
       <section className="bg-white">
         <div className="mx-auto grid min-h-[calc(100vh-4rem)] max-w-6xl items-center gap-10 px-4 py-12 lg:grid-cols-[0.95fr_1.05fr]">
-          <div>
+          <div className="animate-fade-in">
             <div className="inline-flex items-center gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-1 text-sm font-medium text-brand">
               <Sparkles className="h-4 w-4" />
               中文短视频创作工作台
@@ -27,21 +27,21 @@ export default function HomePage() {
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
                 href="/tool"
-                className="inline-flex items-center gap-2 rounded-md bg-brand px-5 py-3 text-sm font-semibold text-white shadow-soft hover:bg-teal-800"
+                className="inline-flex items-center gap-2 rounded-md bg-brand px-5 py-3 text-sm font-semibold text-white shadow-soft transition hover:-translate-y-0.5 hover:bg-teal-800"
               >
                 开始生成
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <a
                 href="#features"
-                className="inline-flex items-center gap-2 rounded-md border border-line bg-white px-5 py-3 text-sm font-semibold text-ink hover:border-brand hover:text-brand"
+                className="inline-flex items-center gap-2 rounded-md border border-line bg-white px-5 py-3 text-sm font-semibold text-ink transition hover:-translate-y-0.5 hover:border-brand hover:text-brand"
               >
                 查看能力
               </a>
             </div>
           </div>
 
-          <div className="relative">
+          <div className="relative animate-fade-in">
             <Image
               src="/images/hero-script-workspace.png"
               alt="AI 短视频脚本工作台界面"
@@ -72,7 +72,7 @@ export default function HomePage() {
         <div className="mx-auto max-w-6xl px-4 py-16">
           <div className="grid gap-4 md:grid-cols-3">
             {features.map((feature) => (
-              <div key={feature} className="rounded-lg border border-line bg-white p-5">
+              <div key={feature} className="rounded-lg border border-line bg-white p-5 transition hover:-translate-y-0.5 hover:shadow-soft">
                 <CheckCircle2 className="h-5 w-5 text-brand" />
                 <p className="mt-3 leading-7 text-slate-700">{feature}</p>
               </div>
@@ -94,7 +94,7 @@ function Feature({
   children: React.ReactNode;
 }) {
   return (
-    <div>
+    <div className="transition hover:-translate-y-0.5">
       <div className="flex h-10 w-10 items-center justify-center rounded-md bg-emerald-100 text-brand">
         {icon}
       </div>

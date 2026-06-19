@@ -29,3 +29,77 @@ textarea {
 ::selection {
   background: #b7f2e9;
 }
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes soft-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes particle-out {
+  from {
+    opacity: 0.52;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, -140%) scale(0.2);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 420ms ease both;
+}
+
+.animate-pop-in {
+  animation: pop-in 180ms ease both;
+}
+
+.animate-soft-float {
+  animation: soft-float 4.6s ease-in-out infinite;
+}
+
+.cursor-particle {
+  position: absolute;
+  border-radius: 9999px;
+  background: radial-gradient(circle, rgba(15, 118, 110, 0.62), rgba(15, 118, 110, 0));
+  filter: blur(0.2px);
+  animation: particle-out 720ms ease-out forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

@@ -2,7 +2,7 @@ import { LegalPage, LegalSection } from "@/app/(legal)/LegalPage";
 
 export default function AiDisclaimerPage() {
   return (
-    <LegalPage title="AI 内容说明" updatedAt="2026-06-17">
+    <LegalPage title="AI 内容说明" updatedAt="2026-06-19">
       <LegalSection title="1. AI 辅助性质">
         <p>
           本工具生成的标题、脚本、分镜、旁白和提示词由 AI 辅助完成，适合作为创意草稿和效率工具，不应直接替代专业法律、广告合规、版权审核或品牌审核。

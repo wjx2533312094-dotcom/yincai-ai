@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createLoginCode, normalizePhone, recordLoginCodeSend, validatePhone } from "@/lib/auth";
+import { assertCanRequestLoginCode, createLoginCode, normalizePhone, recordLoginCodeSend, validatePhone } from "@/lib/auth";
 import { sendLoginSms } from "@/lib/sms";
 
 export const runtime = "nodejs";
@@ -13,8 +13,9 @@ export async function POST(request: Request) {
   }
 
   try {
-    const code = await createLoginCode(phone);
-    const sms = await sendLoginSms(phone, code);
+    await assertCanRequestLoginCode(phone);
+    const sms = await sendLoginSms(phone);
+    const code = await createLoginCode(phone, sms.code);
     await recordLoginCodeSend(phone);
 
     return NextResponse.json({

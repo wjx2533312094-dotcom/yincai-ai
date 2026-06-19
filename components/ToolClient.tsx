@@ -1,8 +1,20 @@
 "use client";
 
-import { Clock, History, Loader2, LogOut, RotateCcw, Send, Settings, UserRound, Wallet } from "lucide-react";
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import {
+  Clock,
+  History,
+  Loader2,
+  LogOut,
+  MessageCircle,
+  QrCode,
+  RotateCcw,
+  Send,
+  Settings,
+  UserRound,
+  Wallet
+} from "lucide-react";
 import Link from "next/link";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { ResultPanel } from "@/components/ResultPanel";
 import {
   createHistoryItem,
@@ -30,6 +42,14 @@ type Plan = {
   description: string;
 };
 
+type SupportInfo = {
+  configured: boolean;
+  qrCodeUrl?: string;
+  appId?: string;
+  label: string;
+  note: string;
+};
+
 const defaultForm: ScriptFormInput = {
   topic: "",
   videoType: "产品种草",
@@ -55,11 +75,11 @@ export function ToolClient() {
   const [result, setResult] = useState<ScriptResult | null>(null);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [supportInfo, setSupportInfo] = useState<SupportInfo | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [phone, setPhone] = useState("");
   const [code, setCode] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(false);
-  const [devCode, setDevCode] = useState("");
   const [authLoading, setAuthLoading] = useState(false);
   const [authMessage, setAuthMessage] = useState("");
   const [billingMessage, setBillingMessage] = useState("");
@@ -78,6 +98,11 @@ export function ToolClient() {
       .then((response) => response.json())
       .then((data: { user: AuthUser | null }) => setUser(data.user))
       .catch(() => setUser(null));
+
+    fetch("/api/support/wechat-miniapp")
+      .then((response) => response.json())
+      .then((data: SupportInfo) => setSupportInfo(data))
+      .catch(() => setSupportInfo(null));
   }, []);
 
   useEffect(() => {
@@ -93,7 +118,6 @@ export function ToolClient() {
   async function handleSendCode() {
     setAuthLoading(true);
     setAuthMessage("");
-    setDevCode("");
 
     try {
       const response = await fetch("/api/auth/send-code", {
@@ -108,11 +132,9 @@ export function ToolClient() {
       }
 
       if (data.devCode) {
-        setDevCode(data.devCode);
         setCode(data.devCode);
-        setAuthMessage("验证码已生成，开发版已自动填入。");
+        setAuthMessage("验证码已填写，请继续登录。");
       } else {
-        setDevCode("");
         setCode("");
         setAuthMessage("验证码已发送，请查看手机短信。");
       }
@@ -141,7 +163,6 @@ export function ToolClient() {
 
       setUser(data.user);
       setAuthMessage("登录成功。");
-      setDevCode("");
     } catch (err) {
       setAuthMessage(err instanceof Error ? err.message : "登录失败。");
     } finally {
@@ -155,7 +176,6 @@ export function ToolClient() {
     setPhone("");
     setCode("");
     setTermsAccepted(false);
-    setDevCode("");
     setAuthMessage("");
     setBillingMessage("");
   }
@@ -217,7 +237,7 @@ export function ToolClient() {
   return (
     <main className="mx-auto max-w-6xl px-4 py-8">
       <div className="mb-6 flex items-start justify-between gap-4">
-        <div>
+        <div className="animate-fade-in">
           <p className="text-sm font-medium text-brand">生成工具</p>
           <h1 className="mt-1 text-2xl font-semibold text-ink">短视频脚本生成</h1>
         </div>
@@ -225,7 +245,7 @@ export function ToolClient() {
           <button
             type="button"
             onClick={() => setMenuOpen((value) => !value)}
-            className="inline-flex items-center gap-2 rounded-md border border-line bg-white px-4 py-2.5 text-sm font-semibold text-ink shadow-soft hover:border-brand hover:text-brand"
+            className="inline-flex items-center gap-2 rounded-md border border-line bg-white px-4 py-2.5 text-sm font-semibold text-ink shadow-soft transition hover:-translate-y-0.5 hover:border-brand hover:text-brand"
           >
             {user ? <Wallet className="h-4 w-4" /> : <UserRound className="h-4 w-4" />}
             {user ? balanceText(user) : "登录 / 余额"}
@@ -235,11 +255,11 @@ export function ToolClient() {
               user={user}
               phone={phone}
               code={code}
-              devCode={devCode}
               termsAccepted={termsAccepted}
               authLoading={authLoading}
               authMessage={authMessage}
               billingMessage={billingMessage}
+              supportInfo={supportInfo}
               onPhoneChange={setPhone}
               onCodeChange={setCode}
               onTermsAcceptedChange={setTermsAccepted}
@@ -254,14 +274,14 @@ export function ToolClient() {
 
       <div className="grid gap-6 lg:grid-cols-[380px_1fr]">
         <aside className="space-y-6">
-          <form onSubmit={handleSubmit} className="rounded-lg border border-line bg-white p-5 shadow-soft">
+          <form onSubmit={handleSubmit} className="animate-fade-in rounded-lg border border-line bg-white p-5 shadow-soft">
             <label className="block">
               <span className="text-sm font-medium text-ink">视频主题</span>
               <textarea
                 value={form.topic}
                 onChange={(event) => setForm({ ...form, topic: event.target.value })}
                 placeholder="例如：夏季新品冰咖啡上市，适合办公室白领"
-                className="mt-2 h-28 w-full resize-none rounded-md border border-line px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-emerald-100"
+                className="mt-2 h-28 w-full resize-none rounded-md border border-line px-3 py-2 text-sm outline-none transition focus:border-brand focus:ring-2 focus:ring-emerald-100"
                 maxLength={120}
               />
             </label>
@@ -279,7 +299,7 @@ export function ToolClient() {
               <button
                 type="submit"
                 disabled={!canSubmit}
-                className="inline-flex items-center justify-center gap-2 rounded-md bg-brand px-4 py-3 text-sm font-semibold text-white hover:bg-teal-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+                className="inline-flex items-center justify-center gap-2 rounded-md bg-brand px-4 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-teal-800 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:hover:translate-y-0"
               >
                 {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                 {loading ? "生成中" : "生成脚本"}
@@ -291,7 +311,7 @@ export function ToolClient() {
                   setResult(null);
                   setError("");
                 }}
-                className="inline-flex h-12 w-12 items-center justify-center rounded-md border border-line bg-white text-muted hover:border-brand hover:text-brand"
+                className="inline-flex h-12 w-12 items-center justify-center rounded-md border border-line bg-white text-muted transition hover:-translate-y-0.5 hover:border-brand hover:text-brand"
                 title="重置"
               >
                 <RotateCcw className="h-4 w-4" />
@@ -299,7 +319,7 @@ export function ToolClient() {
             </div>
           </form>
 
-          <section className="rounded-lg border border-line bg-white p-5">
+          <section className="animate-fade-in rounded-lg border border-line bg-white p-5">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="flex items-center gap-2 font-semibold text-ink">
                 <History className="h-4 w-4" />
@@ -313,14 +333,14 @@ export function ToolClient() {
             </div>
             <div className="space-y-3">
               {history.length === 0 ? (
-                <p className="text-sm leading-6 text-muted">生成后的记录会保存在当前浏览器。</p>
+                <p className="text-sm leading-6 text-muted">生成后的记录会保存在当前浏览器，方便回看和复用。</p>
               ) : (
                 history.map((item) => (
                   <button
                     key={item.id}
                     type="button"
                     onClick={() => applyHistory(item)}
-                    className="block w-full rounded-md border border-line p-3 text-left hover:border-brand hover:bg-emerald-50"
+                    className="block w-full rounded-md border border-line p-3 text-left transition hover:-translate-y-0.5 hover:border-brand hover:bg-emerald-50"
                   >
                     <p className="line-clamp-1 font-medium text-ink">{item.result.title}</p>
                     <p className="mt-1 line-clamp-1 text-sm text-muted">{item.form.topic}</p>
@@ -335,12 +355,12 @@ export function ToolClient() {
           </section>
         </aside>
 
-        <div>
+        <div className="animate-fade-in">
           {result ? (
             <ResultPanel result={result} />
           ) : (
             <section className="flex min-h-[560px] items-center justify-center rounded-lg border border-dashed border-slate-300 bg-white px-6 text-center">
-              <div className="max-w-md">
+              <div className="max-w-md animate-soft-float">
                 <p className="text-sm font-medium text-brand">等待生成</p>
                 <h2 className="mt-2 text-2xl font-semibold text-ink">填写左侧表单，生成完整短视频方案</h2>
                 <p className="mt-3 leading-7 text-muted">
@@ -359,11 +379,11 @@ function UserMenu({
   user,
   phone,
   code,
-  devCode,
   termsAccepted,
   authLoading,
   authMessage,
   billingMessage,
+  supportInfo,
   onPhoneChange,
   onCodeChange,
   onTermsAcceptedChange,
@@ -375,11 +395,11 @@ function UserMenu({
   user: AuthUser | null;
   phone: string;
   code: string;
-  devCode: string;
   termsAccepted: boolean;
   authLoading: boolean;
   authMessage: string;
   billingMessage: string;
+  supportInfo: SupportInfo | null;
   onPhoneChange: (value: string) => void;
   onCodeChange: (value: string) => void;
   onTermsAcceptedChange: (value: boolean) => void;
@@ -389,7 +409,7 @@ function UserMenu({
   onActivatePlan: (planId: Plan["id"]) => void;
 }) {
   return (
-    <section className="absolute right-0 z-40 mt-3 w-[360px] max-w-[calc(100vw-2rem)] rounded-lg border border-line bg-white p-4 shadow-soft">
+    <section className="absolute right-0 z-40 mt-3 w-[360px] max-w-[calc(100vw-2rem)] animate-pop-in rounded-lg border border-line bg-white p-4 shadow-soft">
       {user ? (
         <div className="space-y-4">
           <div className="flex items-start justify-between gap-3">
@@ -416,30 +436,8 @@ function UserMenu({
             </p>
           )}
 
-          <div>
-            <h3 className="mb-3 flex items-center gap-2 font-semibold text-ink">
-              <Settings className="h-4 w-4" />
-              套餐定价
-            </h3>
-            <div className="space-y-2">
-              {plans.map((plan) => (
-                <button
-                  key={plan.id}
-                  type="button"
-                  onClick={() => onActivatePlan(plan.id)}
-                  className="grid w-full grid-cols-[1fr_auto] gap-3 rounded-md border border-line p-3 text-left hover:border-brand hover:bg-emerald-50"
-                >
-                  <span>
-                    <span className="block font-medium text-ink">{plan.name}</span>
-                    <span className="mt-1 block text-xs text-muted">
-                      {plan.quota} · {plan.description}
-                    </span>
-                  </span>
-                  <span className="font-semibold text-brand">{plan.price}</span>
-                </button>
-              ))}
-            </div>
-          </div>
+          <PlanList interactive onActivatePlan={onActivatePlan} />
+          <SupportPanel supportInfo={supportInfo} />
 
           {billingMessage && <p className="rounded-md bg-emerald-50 px-3 py-2 text-sm text-brand">{billingMessage}</p>}
         </div>
@@ -453,7 +451,7 @@ function UserMenu({
             value={phone}
             onChange={(event) => onPhoneChange(event.target.value)}
             placeholder="请输入手机号"
-            className="h-11 w-full rounded-md border border-line px-3 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-emerald-100"
+            className="h-11 w-full rounded-md border border-line px-3 text-sm outline-none transition focus:border-brand focus:ring-2 focus:ring-emerald-100"
             inputMode="tel"
             maxLength={13}
           />
@@ -462,7 +460,7 @@ function UserMenu({
               value={code}
               onChange={(event) => onCodeChange(event.target.value)}
               placeholder="6 位验证码"
-              className="h-11 rounded-md border border-line px-3 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-emerald-100"
+              className="h-11 rounded-md border border-line px-3 text-sm outline-none transition focus:border-brand focus:ring-2 focus:ring-emerald-100"
               inputMode="numeric"
               maxLength={6}
             />
@@ -470,7 +468,7 @@ function UserMenu({
               type="button"
               onClick={onSendCode}
               disabled={authLoading}
-              className="rounded-md border border-line bg-white px-3 text-sm font-medium text-ink hover:border-brand hover:text-brand disabled:cursor-not-allowed disabled:text-muted"
+              className="rounded-md border border-line bg-white px-3 text-sm font-medium text-ink transition hover:border-brand hover:text-brand disabled:cursor-not-allowed disabled:text-muted"
             >
               获取验证码
             </button>
@@ -479,7 +477,7 @@ function UserMenu({
             type="button"
             onClick={onLogin}
             disabled={authLoading || !termsAccepted}
-            className="h-11 w-full rounded-md bg-ink text-sm font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+            className="h-11 w-full rounded-md bg-ink text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:hover:translate-y-0"
           >
             登录
           </button>
@@ -507,31 +505,96 @@ function UserMenu({
             </span>
           </label>
           {!termsAccepted && <p className="text-xs text-amber-700">请先勾选同意条款后再登录。</p>}
-          {(authMessage || devCode) && (
-            <p className="rounded-md bg-emerald-50 px-3 py-2 text-sm leading-6 text-brand">
-              {authMessage}
-              {devCode ? ` 验证码：${devCode}` : ""}
-            </p>
-          )}
-          <div className="border-t border-line pt-3">
-            <h3 className="mb-2 font-semibold text-ink">套餐定价</h3>
-            <div className="grid gap-2">
-              {plans.map((plan) => (
-                <div key={plan.id} className="grid grid-cols-[1fr_auto] gap-3 rounded-md border border-line p-3">
-                  <span>
-                    <span className="block font-medium text-ink">{plan.name}</span>
-                    <span className="mt-1 block text-xs text-muted">
-                      {plan.quota} · {plan.description}
-                    </span>
-                  </span>
-                  <span className="font-semibold text-brand">{plan.price}</span>
-                </div>
-              ))}
-            </div>
-          </div>
+          {authMessage && <p className="rounded-md bg-emerald-50 px-3 py-2 text-sm leading-6 text-brand">{authMessage}</p>}
+          <PlanList />
+          <SupportPanel supportInfo={supportInfo} />
         </div>
       )}
     </section>
+  );
+}
+
+function PlanList({
+  interactive = false,
+  onActivatePlan
+}: {
+  interactive?: boolean;
+  onActivatePlan?: (planId: Plan["id"]) => void;
+}) {
+  return (
+    <div className="border-t border-line pt-3">
+      <h3 className="mb-2 flex items-center gap-2 font-semibold text-ink">
+        <Settings className="h-4 w-4" />
+        套餐定价
+      </h3>
+      <div className="grid gap-2">
+        {plans.map((plan) => {
+          const content = (
+            <>
+              <span>
+                <span className="block font-medium text-ink">{plan.name}</span>
+                <span className="mt-1 block text-xs text-muted">
+                  {plan.quota} · {plan.description}
+                </span>
+              </span>
+              <span className="font-semibold text-brand">{plan.price}</span>
+            </>
+          );
+
+          return interactive ? (
+            <button
+              key={plan.id}
+              type="button"
+              onClick={() => onActivatePlan?.(plan.id)}
+              className="grid w-full grid-cols-[1fr_auto] gap-3 rounded-md border border-line p-3 text-left transition hover:-translate-y-0.5 hover:border-brand hover:bg-emerald-50"
+            >
+              {content}
+            </button>
+          ) : (
+            <div key={plan.id} className="grid grid-cols-[1fr_auto] gap-3 rounded-md border border-line p-3">
+              {content}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function SupportPanel({ supportInfo }: { supportInfo: SupportInfo | null }) {
+  return (
+    <div className="rounded-md border border-line bg-slate-50 p-3">
+      <div className="flex items-start gap-3">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-white text-brand">
+          <MessageCircle className="h-4 w-4" />
+        </div>
+        <div className="min-w-0">
+          <h3 className="font-semibold text-ink">问题反馈</h3>
+          <p className="mt-1 text-xs leading-5 text-muted">
+            {supportInfo?.note || "微信小程序反馈入口已预留，可在环境变量中配置二维码。"}
+          </p>
+          {supportInfo?.configured && supportInfo.qrCodeUrl ? (
+            <div className="mt-3 flex items-center gap-3">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={supportInfo.qrCodeUrl}
+                alt={supportInfo.label}
+                className="h-[88px] w-[88px] rounded-md border border-line bg-white object-cover"
+              />
+              <div className="text-xs leading-5 text-muted">
+                <p className="font-medium text-ink">{supportInfo.label}</p>
+                {supportInfo.appId && <p>AppID：{supportInfo.appId}</p>}
+              </div>
+            </div>
+          ) : (
+            <div className="mt-3 inline-flex items-center gap-2 rounded-md border border-dashed border-slate-300 bg-white px-3 py-2 text-xs text-muted">
+              <QrCode className="h-4 w-4" />
+              等待配置二维码
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -561,7 +624,7 @@ function SelectField({
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="mt-2 h-11 w-full rounded-md border border-line bg-white px-3 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-emerald-100"
+        className="mt-2 h-11 w-full rounded-md border border-line bg-white px-3 text-sm outline-none transition focus:border-brand focus:ring-2 focus:ring-emerald-100"
       >
         {options.map((option) => (
           <option key={option}>{option}</option>

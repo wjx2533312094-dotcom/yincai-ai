@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@alicloud/dysmsapi20170525": "^4.5.1",
+    "@alicloud/dypnsapi20170525": "^2.0.0",
     "@alicloud/openapi-client": "^0.4.15",
     "@alicloud/tea-util": "^1.4.11",
     "lucide-react": "^0.468.0",

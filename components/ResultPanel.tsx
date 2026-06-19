@@ -21,7 +21,7 @@ export function ResultPanel({ result }: ResultPanelProps) {
       <ResultBlock title="3秒钩子" text={result.hook} />
       <ResultBlock title="完整脚本" text={result.fullScript} />
 
-      <div className="overflow-hidden rounded-lg border border-line bg-white">
+      <div className="overflow-hidden rounded-lg border border-line bg-white transition hover:shadow-soft">
         <div className="flex items-center justify-between border-b border-line px-4 py-3">
           <h3 className="font-semibold text-ink">分镜表</h3>
           <CopyButton text={formatStoryboard(result.storyboard)} />
@@ -61,7 +61,7 @@ export function ResultPanel({ result }: ResultPanelProps) {
 
 function ResultBlock({ title, text }: { title: string; text: string }) {
   return (
-    <article className="rounded-lg border border-line bg-white">
+    <article className="rounded-lg border border-line bg-white transition hover:shadow-soft">
       <div className="flex items-center justify-between gap-3 border-b border-line px-4 py-3">
         <h3 className="font-semibold text-ink">{title}</h3>
         <CopyButton text={text} />

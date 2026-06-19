@@ -44,15 +44,18 @@ export function validatePhone(phone: string) {
   return /^1[3-9]\d{9}$/.test(phone);
 }
 
-export async function createLoginCode(phone: string) {
+export async function assertCanRequestLoginCode(phone: string) {
   const sentCount = await getTodayLoginCodeSendCount(phone);
 
   if (sentCount >= DAILY_LOGIN_CODE_LIMIT) {
     throw new Error("今天验证码次数已用完，请明天再试。");
   }
+}
 
+export async function createLoginCode(phone: string, codeOverride?: string) {
+  await assertCanRequestLoginCode(phone);
   const sql = getDb();
-  const code = String(randomInt(100000, 1000000));
+  const code = codeOverride || String(randomInt(100000, 1000000));
   const expiresAt = new Date(Date.now() + codeTtlMs);
 
   await ensureUser(phone);
