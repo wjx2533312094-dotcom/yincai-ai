@@ -9,7 +9,10 @@ export async function POST(request: Request) {
   const code = typeof body.code === "string" ? body.code.trim() : "";
 
   if (body.termsAccepted !== true) {
-    return NextResponse.json({ error: "请先阅读并同意用户协议、隐私政策和 AI 内容说明。" }, { status: 400 });
+    return NextResponse.json(
+      { error: "请先阅读并同意用户协议、隐私政策和 AI 内容说明。" },
+      { status: 400 }
+    );
   }
 
   if (!validatePhone(phone)) {

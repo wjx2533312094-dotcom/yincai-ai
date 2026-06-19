@@ -3,6 +3,8 @@ import { getDb } from "@/lib/db";
 
 export const SESSION_COOKIE_NAME = "script_session";
 export const FREE_GENERATION_LIMIT = 3;
+export const DAILY_LOGIN_CODE_LIMIT = 3;
+export const MAX_LOGIN_CODE_ATTEMPTS = 5;
 
 export const PLANS = [
   { id: "starter", name: "轻量包", price: "9.9元", credits: 20, description: "适合偶尔生成脚本" },
@@ -43,32 +45,67 @@ export function validatePhone(phone: string) {
 }
 
 export async function createLoginCode(phone: string) {
+  const sentCount = await getTodayLoginCodeSendCount(phone);
+
+  if (sentCount >= DAILY_LOGIN_CODE_LIMIT) {
+    throw new Error("今天验证码次数已用完，请明天再试。");
+  }
+
   const sql = getDb();
   const code = String(randomInt(100000, 1000000));
   const expiresAt = new Date(Date.now() + codeTtlMs);
 
   await ensureUser(phone);
   await sql`
-    insert into login_codes (phone, code, expires_at)
-    values (${phone}, ${code}, ${expiresAt})
+    insert into login_codes (phone, code, failed_attempts, expires_at)
+    values (${phone}, ${code}, 0, ${expiresAt})
     on conflict (phone)
-    do update set code = excluded.code, expires_at = excluded.expires_at, created_at = now()
+    do update set
+      code = excluded.code,
+      failed_attempts = 0,
+      expires_at = excluded.expires_at,
+      created_at = now()
   `;
 
   return code;
 }
 
+export async function recordLoginCodeSend(phone: string) {
+  const sql = getDb();
+  await ensureUser(phone);
+  await sql`insert into login_code_sends (phone) values (${phone})`;
+}
+
 export async function verifyLoginCode(phone: string, code: string) {
   const sql = getDb();
-  const rows = await sql<{ code: string; expires_at: Date }[]>`
-    select code, expires_at
+  const rows = await sql<{ code: string; failed_attempts: number; expires_at: Date }[]>`
+    select code, failed_attempts, expires_at
     from login_codes
     where phone = ${phone}
     limit 1
   `;
   const record = rows[0];
 
-  if (!record || record.code !== code || new Date(record.expires_at).getTime() < Date.now()) {
+  if (!record) {
+    throw new Error("验证码错误或已过期。");
+  }
+
+  if (new Date(record.expires_at).getTime() < Date.now()) {
+    await sql`delete from login_codes where phone = ${phone}`;
+    throw new Error("验证码错误或已过期。");
+  }
+
+  if (record.failed_attempts >= MAX_LOGIN_CODE_ATTEMPTS) {
+    await sql`delete from login_codes where phone = ${phone}`;
+    throw new Error("验证码错误次数过多，请重新获取。");
+  }
+
+  if (record.code !== code) {
+    await sql`
+      update login_codes
+      set failed_attempts = failed_attempts + 1
+      where phone = ${phone}
+    `;
     throw new Error("验证码错误或已过期。");
   }
 
@@ -191,6 +228,36 @@ export async function removeSession(token?: string) {
 
   const sql = getDb();
   await sql`delete from sessions where token = ${token}`;
+}
+
+async function getTodayLoginCodeSendCount(phone: string) {
+  const sql = getDb();
+  const { start, end } = getChinaDayRange();
+  const rows = await sql<{ count: number }[]>`
+    select count(*)::int as count
+    from login_code_sends
+    where phone = ${phone}
+      and created_at >= ${start}
+      and created_at < ${end}
+  `;
+
+  return rows[0]?.count ?? 0;
+}
+
+function getChinaDayRange(now = new Date()) {
+  const chinaDate = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Shanghai",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).format(now);
+  const [year, month, day] = chinaDate.split("-").map(Number);
+  const utcStartMs = Date.UTC(year, month - 1, day) - 8 * 60 * 60 * 1000;
+
+  return {
+    start: new Date(utcStartMs),
+    end: new Date(utcStartMs + 24 * 60 * 60 * 1000)
+  };
 }
 
 async function ensureUser(phone: string) {

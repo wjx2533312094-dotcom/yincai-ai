@@ -57,12 +57,44 @@ DATABASE_URL
 OPENAI_API_KEY
 OPENAI_API_BASE_URL
 OPENAI_MODEL
+ALIYUN_ACCESS_KEY_ID
+ALIYUN_ACCESS_KEY_SECRET
+ALIYUN_SMS_SIGN_NAME
+ALIYUN_SMS_TEMPLATE_CODE
 ```
 
 查看线上环境变量：
 
 ```powershell
 npx.cmd --yes vercel@latest env ls
+```
+
+## 短信验证码
+
+本地开发环境未配置阿里云短信时，接口会返回 `devCode` 方便测试。
+
+Production 环境不会返回 `devCode`。上线使用真实短信前，需要在阿里云短信服务中准备：
+
+```text
+AccessKey ID
+AccessKey Secret
+短信签名
+短信模板 CODE
+```
+
+短信模板变量名必须包含：
+
+```json
+{"code":"123456"}
+```
+
+对应 Vercel 环境变量：
+
+```env
+ALIYUN_ACCESS_KEY_ID
+ALIYUN_ACCESS_KEY_SECRET
+ALIYUN_SMS_SIGN_NAME
+ALIYUN_SMS_TEMPLATE_CODE
 ```
 
 ## 数据库

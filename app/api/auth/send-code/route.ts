@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { createLoginCode, normalizePhone, validatePhone } from "@/lib/auth";
+import { createLoginCode, normalizePhone, recordLoginCodeSend, validatePhone } from "@/lib/auth";
+import { sendLoginSms } from "@/lib/sms";
 
 export const runtime = "nodejs";
 
@@ -13,9 +14,12 @@ export async function POST(request: Request) {
 
   try {
     const code = await createLoginCode(phone);
+    const sms = await sendLoginSms(phone, code);
+    await recordLoginCodeSend(phone);
+
     return NextResponse.json({
-      message: "验证码已生成。",
-      devCode: code
+      message: sms.mode === "development" ? "验证码已生成。" : "验证码已发送。",
+      ...(sms.mode === "development" ? { devCode: code } : {})
     });
   } catch (error) {
     return NextResponse.json(

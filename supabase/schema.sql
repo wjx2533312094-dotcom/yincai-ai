@@ -11,7 +11,14 @@ create table if not exists public.app_users (
 create table if not exists public.login_codes (
   phone text primary key references public.app_users(phone) on delete cascade,
   code text not null,
+  failed_attempts integer not null default 0,
   expires_at timestamptz not null,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.login_code_sends (
+  id bigserial primary key,
+  phone text not null references public.app_users(phone) on delete cascade,
   created_at timestamptz not null default now()
 );
 
@@ -35,3 +42,4 @@ create table if not exists public.orders (
 create index if not exists sessions_phone_idx on public.sessions(phone);
 create index if not exists sessions_expires_at_idx on public.sessions(expires_at);
 create index if not exists login_codes_expires_at_idx on public.login_codes(expires_at);
+create index if not exists login_code_sends_phone_created_at_idx on public.login_code_sends(phone, created_at);
